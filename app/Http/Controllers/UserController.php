@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\UserRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use App\Models\User;
@@ -12,20 +12,42 @@ class UserController extends Controller
     public function getAll(): JsonResponse {
         $users = User::all();
 
-        return response()->json($users);
+        return response()->json($users, Response::HTTP_OK);
     }
 
     public function get(int $id): JsonResponse {
         $user = User::find($id);
 
+        if (! $user) {
+            return response()->json('', 404);
+        }
+
         return response()->json($user);
     }
 
-    public function create(Request $request): void {
+    public function create(UserRequest $request): JsonResponse {
+        $validated = $request->validated();
 
+        $validated['role'] = 'reader';
+
+        $user = User::create($validated);
+
+        return response()->json($user);
     }
 
-    public function update(Request $request, int $id): void {}
+    public function update(UserRequest $request, int $id): JsonResponse {
+        $user = User::find($id);
+
+        if ($user) {
+            $user->update($request->validated());
+            return response()->json($user);
+        }
+
+        return response()->json(
+            ["message" => "User with $id was not found"],
+            Response::HTTP_NOT_FOUND
+        );
+    }
 
     public function delete(int $id): Response {
         $user = User::find($id);
@@ -34,6 +56,6 @@ class UserController extends Controller
             $user->delete();
         }
 
-        return response("", 204);
+        return response("", Response::HTTP_NO_CONTENT);
     }
 }
