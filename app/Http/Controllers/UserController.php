@@ -25,7 +25,7 @@ class UserController extends Controller
         return response()->json($user);
     }
 
-    public function create(UserRequest $request): JsonResponse {
+    public function create(UserFormRequest $request): JsonResponse {
         $validated = $request->validated();
 
         $validated['role'] = 'reader';
@@ -35,7 +35,7 @@ class UserController extends Controller
         return response()->json($user);
     }
 
-    public function update(UserRequest $request, int $id): JsonResponse {
+    public function update(UserFormRequest $request, int $id): JsonResponse {
         $user = User::find($id);
 
         if ($user) {
