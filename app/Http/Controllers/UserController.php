@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UserFormRequest;
+use App\Http\Requests\UserRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use App\Models\User;
@@ -18,31 +18,35 @@ class UserController extends Controller
     public function get(int $id): JsonResponse {
         $user = User::find($id);
 
-        return response()->json($user, Response::HTTP_OK);
+        if (! $user) {
+            return response()->json('', 404);
+        }
+
+        return response()->json($user);
     }
 
-    public function create(UserFormRequest $request): JsonResponse {
+    public function create(UserRequest $request): JsonResponse {
         $validated = $request->validated();
 
         $validated['role'] = 'reader';
-    
+
         $user = User::create($validated);
 
-        return response()->json($user, Response::HTTP_CREATED);
+        return response()->json($user);
     }
 
-    public function update(UserFormRequest $request, int $id): JsonResponse {
+    public function update(UserRequest $request, int $id): JsonResponse {
         $user = User::find($id);
 
-        if (! $user) {
-            return response()->json([
-                'messages' => "User with id $id was not found"
-            ], Response::HTTP_NOT_FOUND);
+        if ($user) {
+            $user->update($request->validated());
+            return response()->json($user);
         }
 
-        $user->update($request->validated());
-
-        return response()->json($user, Response::HTTP_OK);
+        return response()->json(
+            ["message" => "User with $id was not found"],
+            Response::HTTP_NOT_FOUND
+        );
     }
 
     public function delete(int $id): Response {
