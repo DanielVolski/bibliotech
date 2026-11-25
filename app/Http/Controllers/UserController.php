@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Filters\UserQueryFilter;
+use App\Http\Requests\GetUserFormRequest;
 use App\Http\Requests\UserFormRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -9,8 +11,12 @@ use App\Models\User;
 
 class UserController extends Controller
 {
-    public function getAll(): JsonResponse {
-        $users = User::all();
+    public function getAll(GetUserFormRequest $request): JsonResponse {
+        $filters = $request->validated();
+
+        $userQueryFilter = new UserQueryFilter();
+
+        $users = $userQueryFilter->apply($filters)->get();
 
         return response()->json($users, Response::HTTP_OK);
     }
